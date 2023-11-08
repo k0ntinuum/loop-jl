@@ -2,33 +2,78 @@ using Random
 using Printf
 
 
-key(n) =  Random.randperm(n)
 
-str_from_vec(v)  = join(map(i -> alph[i:i], v))
+#
+#nth_word(n) =  vec_from_str(string(n, base = length(alph)))
+#
+#nth_vec(n) = map(i -> parse(Int64, i, base = length(alph)), collect(string(n, base = length(alph))))
+#
 
-vec_from_str(s) = map(i -> findfirst(isequal(i),alph),collect(s))
+function inverse(f)
+    map(i -> findfirst(isequal(i),f),collect(1:length(f)))
+end
 
-nth_word(n) =  vec_from_str(string(n, base = length(alph)))
 
-nth_vec(n) = map(i -> parse(Int64, i, base = length(alph)), collect(string(n, base = length(alph))))
+function rgb(r,g,b)
+    "\e[38;2;$(r);$(g);$(b)m"
+end
 
-inv(f) = map(i -> findfirst(isequal(i),f),collect(1:length(f)))
+function red()
+    rgb(255,0,0)
+end
 
-comp(f,g) = map(i -> f[g[i]], collect(1:length(f)))
+function yellow()
+    rgb(255,255,0)
+end
 
-rgb(r,g,b) =  "\e[38;2;$(r);$(g);$(b)m"
+function white()
+    rgb(255,255,255)
+end
 
-red() = rgb(255,0,0);yellow() = rgb(255,255,0);white() = rgb(255,255,255);gray(h) = rgb(h,h,h)
+function gray(h)
+    rgb(h,h,h)
+end
 
-roll(f,i) = comp(circshift(f,i),f)
 
-function rolls(f) 
+function str_from_vec(v,c)
+    #alph = "O|"
+    alph = "abcdefghijklmnopqrstuvwxyz"
+    join(map(i -> alph[i:i]*c, v))
+end
+
+function printkey(k)
+    n = size(k)[begin]
+	for i in 1:n print(str_from_vec( k[i,:]," " ),"\n") end
+	print("\n")
+end
+
+
+
+function vec_from_str(s)
+    map(i -> findfirst(isequal(i),alph),collect(s))
+end
+
+function comp(f,g) 
+    map(i -> f[g[i]], collect(1:length(f)))
+end
+
+function roll(f,i)
+    comp(circshift(f,i),f)
+end
+
+
+function key(n)
+    Random.randperm(n)
+end
+
+function rolls(f)
+    n = size(f)[begin] 
 	for i in 1:n f = roll(f,i)	 end 
 	f  
 end
 
-function spin(f,r) 
-	for i in 1:r f = rolls(f) end 
+function spin(f,j)
+	for i in 1:j f = rolls(f) end 
 	f 
 end
 
@@ -62,7 +107,7 @@ function decode(c,q)
     f = copy(q)
     p = Int64[]
     for i in eachindex(c)
-        h = inv(f)
+        h = inverse(f)
         push!(p, h[c[i]])
         g = circshift(f,p[end])
         f = comp(g,f)
@@ -70,8 +115,9 @@ function decode(c,q)
     p
 end
 
-function encrypt(p, q, r)
-    for i in 1:r
+function encrypt(p, q)
+    n = size(q)[begin]
+    for i in 1:n
         f = spin(q,i)
         p = encode(p,f)
         p = reverse(p)
@@ -79,17 +125,19 @@ function encrypt(p, q, r)
     p
 end
 
-function decrypt(p, k, r)
-    for i in 1:r
-        f = spin(k,r + 1 - i)
+function decrypt(p, q)
+    n = size(q)[begin]
+    for i in 1:n
+        f = spin(q,n + 1 - i)
         p = reverse(p)
         p = decode(p,f)
     end
     p
 end
 
-function encrypt(p, q, r, F)
-    for i in 1:r
+function encrypt(p, q, F)
+    n = size(q)[begin]
+    for i in 1:n
         f = spin(q,i)
         p = encode(p,f,F)
         p = reverse(p)
@@ -101,22 +149,20 @@ end
 
 
 function demo()
-    print(white(),"f = ", str(f))
-    print(gray(155),"          r = ",r,"\n\n")
-    for i in 1:20
+    
+    n = 26
+    f = key(n)
+    print(white(),"f = ", str_from_vec(f,""), "\n\n")
+    for i in 1:26
     	F = Set()
         p = Random.randperm(n)
-        c = encrypt(p,f,r,F)
-        d = decrypt(c,f,r)
+        c = encrypt(p,f,F)
+        d = decrypt(c,f)
         if p != d @printf "ERROR\n\n" end
-        print(white(),"f( ", red(), str(p),white()," ) = ")
-        print(yellow(), str(c),white(),@sprintf("  %d/%d\n", length(F), r*length(p)))
+        print(white(),"f( ", red(), str_from_vec(p,""),white()," ) = ")
+        print(yellow(), str_from_vec(c,""),white(),@sprintf("  %d/%d\n", length(F), n*length(p)))
     end
 
 end
 
 
-alph = "abcdefghijklmnopqrstuvwxyz"
-n = length(alph)
-r = 10
-f = key(n)
