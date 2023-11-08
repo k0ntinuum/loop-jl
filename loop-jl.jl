@@ -1,14 +1,5 @@
 using Random
 using Printf
-
-
-
-#
-#nth_word(n) =  vec_from_str(string(n, base = length(alph)))
-#
-#nth_vec(n) = map(i -> parse(Int64, i, base = length(alph)), collect(string(n, base = length(alph))))
-#
-
 function inverse(f)
     map(i -> findfirst(isequal(i),f),collect(1:length(f)))
 end
@@ -34,7 +25,6 @@ function gray(h)
     rgb(h,h,h)
 end
 
-
 function str_from_vec(v,c)
     #alph = "O|"
     alph = "abcdefghijklmnopqrstuvwxyz"
@@ -47,8 +37,6 @@ function printkey(k)
 	print("\n")
 end
 
-
-
 function vec_from_str(s)
     map(i -> findfirst(isequal(i),alph),collect(s))
 end
@@ -60,7 +48,6 @@ end
 function roll(f,i)
     comp(circshift(f,i),f)
 end
-
 
 function key(n)
     Random.randperm(n)
@@ -77,7 +64,6 @@ function spin(f,j)
 	f 
 end
 
-
 function encode(p,q)
     f = copy(q)
     c = Int64[]
@@ -88,7 +74,6 @@ function encode(p,q)
     end
     c
 end
-
 
 function encode(p,q,F)
     f = copy(q)
@@ -101,7 +86,6 @@ function encode(p,q,F)
     end
     c
 end
-
 
 function decode(c,q)
     f = copy(q)
@@ -145,11 +129,7 @@ function encrypt(p, q, F)
     p
 end
 
-
-
-
-function demo()
-    
+function demo()  
     n = 26
     f = key(n)
     print(white(),"f = ", str_from_vec(f,""), "\n\n")
@@ -162,7 +142,6 @@ function demo()
         print(white(),"f( ", red(), str_from_vec(p,""),white()," ) = ")
         print(yellow(), str_from_vec(c,""),white(),@sprintf("  %d/%d\n", length(F), n*length(p)))
     end
-
 end
 
 
